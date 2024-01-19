@@ -40,6 +40,7 @@
             # ocamlPackages.dune_3
             ocamlPackages.ocaml
             ocamlPackages.merlin
+            ocamlPackages.dot-merlin-reader # merlin needs this to read .merlin file
 
           ];
         };

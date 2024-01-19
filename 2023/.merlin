@@ -1,4 +1,3 @@
 S src
-S lib
-B _build/src
+B lib
 PKG stdio core re

@@ -1,0 +1,9 @@
+# -I tells the compiler where to look for cmo files
+default:
+	ocamlc -I lib -c lib/advent.mli
+	ocamlc -I lib -c lib/advent.ml
+	ocamlfind ocamlc -package core,stdio -I lib -c src/day4.ml
+	# Linking stage 
+	ocamlfind ocamlc -package core,stdio -linkpkg -o build/day4 lib/advent.cmo src/day4.cmo
+	build/day4
+	
