@@ -25,3 +25,9 @@ just e <day_number>
 > You can do a basic trace of a function with #trace <function>
 
 You can use _M-x ocamldebug_ in emacs to quickly debug an ocaml executable
+
+## Merlin
+- merlin requires the opam package merlin-dot-reader to work properly
+- you need the -I flag to tell ocamlc where the cmo files are usually *-I lib*
+
+
