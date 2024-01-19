@@ -5,5 +5,7 @@ let read_lines (line:string) : unit =
 let more_bs (bs:string) : unit =
     print_endline bs
 
-let testing () : unit = 
-  print_endline "More Bs"
+
+let read_file file = Stdio.In_channel.with_file file ~f:(fun channel ->
+    let x = In_channel.input_all channel in
+    Core.String.split_lines x)
