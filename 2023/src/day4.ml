@@ -24,7 +24,6 @@ let rec calc_score_ref ?(acc = 1) = function
     | 0 -> 0
     | 1 -> acc
     | x -> calc_score_ref ~acc:(acc * 2) (x - 1)
-  
 
 let part1 acc nxt = 
 let start_index = index_of ':' nxt in 
@@ -32,27 +31,23 @@ let middle_index = index_of '|' nxt in
 let end_index = Core.String.length nxt in
 let winning_numbers = get_lotto_num (start_index + 1) middle_index nxt in 
 let lotto_numbers = get_lotto_num (middle_index + 1) (end_index) nxt in
-printf "Length of num %d" (Core.List.length lotto_numbers);
 let winning_score =  
     let winning_set = add_to_set winning_numbers IntSet.empty in
-    (* IntSet.iter (fun a -> printf "%d-" a) winning_set; *)
-    (* printf "\n"; *)
     let calc_score acc' nxt' = 
       if IntSet.mem nxt' winning_set then count := !count + 1 else ();
       if IntSet.mem nxt' winning_set then acc' * 2 else acc' 
     in
-    let res = Core.List.fold ~init:1 ~f:calc_score lotto_numbers in
-    printf "Count:%d " !count;
+    let _ = Core.List.fold ~init:1 ~f:calc_score lotto_numbers in
     calc_score_ref !count
 in
-printf "Care Score: %d -- Total Score %d\n" winning_score (acc + winning_score);
+let temp = !count in
 count := 0;
-acc + winning_score
+((fst acc + winning_score), temp :: (snd acc ))
 
+let cards = []
 
-
-(* let () = Advent.print_list winning_numbers *)
-(* let () = printf "\n" *)
-(* let () =  *)
-(* let () = Advent.print_list lotto_numbers *)
-let () = Core.List.fold ~f:part1 ~init:0 input_list |> printf "Score:%d" 
+let () = printf "=================Part1=================\n"
+let part2_tup = Core.List.fold ~f:part1 ~init:(0,[]) input_list 
+let () = (fun (a,_) -> printf "Score: %d" a) part2_tup
+let () = printf "=================Part2=================\n"
+let () = List.iter (printf "%d\n") (snd part2_tup)

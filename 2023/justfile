@@ -5,7 +5,7 @@ default:
 	ocamlc -g -I lib -c lib/advent.mli
 	ocamlfind ocamlc -g -package core,stdio, -I lib -c lib/advent.ml
 	ocamlfind ocamlc -g -package core -I lib -c src/day4.ml
-	# Linking stage 
+	@# Linking stage 
 	ocamlfind ocamlc -g -package core,stdio -linkpkg -o build/day4 lib/advent.cmo src/day4.cmo
 	build/day4
 	
