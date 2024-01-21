@@ -59,6 +59,21 @@ let card_score = Array.of_list (snd result)
 let () = Array.iter (Format.printf "%d, ")  card_score 
 let card_count = Array.create (List.length input_list) 1
 
-let t__score = [| 1; 1; 1; 1; 1; 1; |]
-let t__count = [| 4; 2; 2; 1; 0; 0; |]
+let t__count = [| 1; 1; 1; 1; 1; 1; |]
+let t__score = [| 4; 2; 2; 1; 0; 0; |]
 
+let part2 (idx:int) (score:int) : unit = 
+  let open Advent in 
+  let range = (idx+1)--(score+idx) in 
+  List.iter (fun n_idx -> t__count.(n_idx) <- t__count.(n_idx) + t__count.(idx) ) range
+
+
+
+let () = Array.iteri part2 t__score
+let () = Format.printf "\n"
+
+let () = Array.iter (Format.printf "%d, ") t__count
+
+let res = Array.fold_left (+) 0 t__count 
+let () = Format.printf "\n"
+let () = Format.printf "%d " res
