@@ -34,8 +34,10 @@
             ocamlPackages.ocaml-lsp
             ocamlPackages.ocamlformat-rpc-lib
             ocamlPackages.utop
+            ocamlPackages.angstrom
             ocamlPackages.core
             ocamlPackages.re
+            ocamlPackages.fmt
             # ocamlPackages.batteries
             # ocamlPackages.dune_3
             ocamlPackages.ocaml
