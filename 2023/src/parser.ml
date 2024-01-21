@@ -31,19 +31,19 @@ let line_parse =
 
 
 let calc_result (crd:card) = 
-  let res = IntSet.inter crd.winning crd.lotto |> IntSet.cardinal in 
-  match res with 
-  | 0 -> 0
-  | score -> Core.Int.pow 2 (res - 1)
+  let count = IntSet.inter crd.winning crd.lotto |> IntSet.cardinal in 
+  match count with 
+  | 0 -> (0,0)
+  | score -> (Core.Int.pow 2 (count - 1), count)
 
 let part1 (acc:int * int list) (nxt:string) = 
   let lotto_card = match Angstrom.parse_string ~consume:Prefix line_parse nxt with
     | Ok res -> res
     | Error err -> Fmt.failwith "No semi colon found" err
   in
-  let score = calc_result lotto_card in
+  let score, count = calc_result lotto_card in
   (* fst it the part1 score, snd is the list of all scores for part2 *)
-  (fst acc + score, snd acc @ [score] )
+  (fst acc + score, snd acc @ [count] )
 
 let result = Core.List.fold ~init:(0,[]) ~f:part1 input_list 
 
@@ -55,25 +55,20 @@ let () = Format.printf "Result->17803 -- %d \n" (fst result)
 (* card 1 has a score of 3 and there are 2 cards *)
 (* so for cards 2->4 inclusive add 2 cards to count *)
 
-let card_score = Array.of_list (snd result)
-let () = Array.iter (Format.printf "%d, ")  card_score 
-let card_count = Array.create (List.length input_list) 1
+(* let t__count = [| 1; 1; 1; 1; 1; 1; |] *)
+(* let t__score = [| 4; 2; 2; 1; 0; 0; |] *)
 
-let t__count = [| 1; 1; 1; 1; 1; 1; |]
-let t__score = [| 4; 2; 2; 1; 0; 0; |]
+let card_score = Array.of_list (snd result)
+let card_count = Array.create (List.length input_list) 1
 
 let part2 (idx:int) (score:int) : unit = 
   let open Advent in 
   let range = (idx+1)--(score+idx) in 
-  List.iter (fun n_idx -> t__count.(n_idx) <- t__count.(n_idx) + t__count.(idx) ) range
+  Format.printf "%d" @@ List.length range;
+  Format.printf "\n";
+  List.iter (fun n_idx -> card_count.(n_idx) <- card_count.(n_idx) + card_count.(idx) ) range
 
-
-
-let () = Array.iteri part2 t__score
-let () = Format.printf "\n"
-
-let () = Array.iter (Format.printf "%d, ") t__count
-
-let res = Array.fold_left (+) 0 t__count 
+let () = Array.iteri part2 card_score
+let res = Array.fold_left (+) 0 card_count 
 let () = Format.printf "\n"
 let () = Format.printf "%d " res
