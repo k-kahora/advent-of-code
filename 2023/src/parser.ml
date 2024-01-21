@@ -36,14 +36,29 @@ let calc_result (crd:card) =
   | 0 -> 0
   | score -> Core.Int.pow 2 (res - 1)
 
-let part1 acc nxt = 
+let part1 (acc:int * int list) (nxt:string) = 
   let lotto_card = match Angstrom.parse_string ~consume:Prefix line_parse nxt with
     | Ok res -> res
     | Error err -> Fmt.failwith "No semi colon found" err
   in
   let score = calc_result lotto_card in
-  acc + score
+  (* fst it the part1 score, snd is the list of all scores for part2 *)
+  (fst acc + score, snd acc @ [score] )
 
-let result = Core.List.fold ~init:0 ~f:part1 input_list 
+let result = Core.List.fold ~init:(0,[]) ~f:part1 input_list 
 
-let () = Format.printf "Result->17803 -- %d \n" result
+let () = Format.printf "Result->17803 -- %d \n" (fst result)
+
+(* Part 2 *)
+(* Two arrays card_count[] and score[] *)
+(* count[i+1:score[i]+i] += count[i] *)
+(* card 1 has a score of 3 and there are 2 cards *)
+(* so for cards 2->4 inclusive add 2 cards to count *)
+
+let card_score = Array.of_list (snd result)
+let () = Array.iter (Format.printf "%d, ")  card_score 
+let card_count = Array.create (List.length input_list) 1
+
+let t__score = [| 1; 1; 1; 1; 1; 1; |]
+let t__count = [| 4; 2; 2; 1; 0; 0; |]
+

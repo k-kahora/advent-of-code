@@ -1,9 +1,13 @@
 # -I tells the compiler where to look for cmo files
 core := `ocamlfind query core`
 re := `ocamlfind query re`
-default:
+
+advent:
 	ocamlc -g -I lib -c lib/advent.mli
 	ocamlfind ocamlc -g -package core,stdio, -I lib -c lib/advent.ml
+
+default:
+	just advent
 	ocamlfind ocamlc -g -package core,angstrom,fmt -I lib -c src/day4.ml
 	@# Linking stage 
 	ocamlfind ocamlc -g -package core,stdio,angstrom,fmt -linkpkg -o build/day4 lib/advent.cmo src/day4.cmo
@@ -26,6 +30,7 @@ test:
 	build/test
 
 parse:
+	just advent
 	ocamlfind ocamlc -g -package angstrom,fmt,core,stdio -I lib -c src/parser.ml
 	ocamlfind ocamlc -g -package angstrom,fmt,core,stdio -linkpkg -o build/parse lib/advent.cmo src/parser.cmo
 	build/parse
