@@ -26,8 +26,8 @@ test:
 	build/test
 
 parse:
-	ocamlfind ocamlc -g -package angstrom,fmt -c src/parser.ml
-	ocamlfind ocamlc -g -package angstrom,fmt -linkpkg -o build/parse src/parser.cmo
+	ocamlfind ocamlc -g -package angstrom,fmt,core,stdio -I lib -c src/parser.ml
+	ocamlfind ocamlc -g -package angstrom,fmt,core,stdio -linkpkg -o build/parse lib/advent.cmo src/parser.cmo
 	build/parse
 
 
