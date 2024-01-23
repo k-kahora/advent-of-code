@@ -47,7 +47,7 @@ let part1 (acc:int * int list) (nxt:string) =
 
 let result = Core.List.fold ~init:(0,[]) ~f:part1 input_list 
 
-let () = Format.printf "Result->17803 -- %d \n" (fst result)
+let () = Format.printf "\nPart1: Result -> 17803 -- %d \n" (fst result)
 
 (* Part 2 *)
 (* Two arrays card_count[] and score[] *)
@@ -57,18 +57,15 @@ let () = Format.printf "Result->17803 -- %d \n" (fst result)
 
 (* let t__count = [| 1; 1; 1; 1; 1; 1; |] *)
 (* let t__score = [| 4; 2; 2; 1; 0; 0; |] *)
-
 let card_score = Array.of_list (snd result)
 let card_count = Array.create (List.length input_list) 1
 
 let part2 (idx:int) (score:int) : unit = 
   let open Advent in 
   let range = (idx+1)--(score+idx) in 
-  Format.printf "%d" @@ List.length range;
-  Format.printf "\n";
   List.iter (fun n_idx -> card_count.(n_idx) <- card_count.(n_idx) + card_count.(idx) ) range
 
 let () = Array.iteri part2 card_score
 let res = Array.fold_left (+) 0 card_count 
-let () = Format.printf "\n"
-let () = Format.printf "%d " res
+let () = Format.printf "\nPart2: "
+let () = Format.printf "Result -> 5554894 -- %d " res

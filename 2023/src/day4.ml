@@ -1,7 +1,7 @@
 open Format;;
 open Set;;
 open Angstrom;;
-let input_list = Advent.read_file "inputs/input4"
+let input_list = Advent.read_file "2023/inputs/input4"
 let test_input = "Card   3: 31 97 18 93 71 54 24 12 19 87 | 59 96 72 94  4 51 74 84 47 10 57 89 65 37 39 16 31 91 26 85 44 30 24 40  2
 "
 
