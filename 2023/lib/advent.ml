@@ -7,6 +7,9 @@ let read_file file = Stdio.In_channel.with_file file ~f:(fun channel ->
     let x = In_channel.input_all channel in
     Core.String.split_lines x)
 
+let read_file_as_string file = Stdio.In_channel.with_file file ~f:(fun channel ->
+    In_channel.input_all channel)
+
 
 let (--) i j = 
   let rec aux n acc = 

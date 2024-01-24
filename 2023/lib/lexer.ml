@@ -1,0 +1,22 @@
+
+let newline_char = function
+'\n' | '\r' -> true | _ -> false
+
+
+let is_whitespace = function
+  (* \x20 -> ascii space character *)
+  (* \x0a -> ascii newline character *)
+  (* \x0d -> carriage retunr character or \r *)
+  (* \x09 -> horizontal tab character *)
+  | '\x20' | '\x0d' | '\x09' -> true
+  | _ -> false
+
+let is_digit = function '0'..'9' -> true | _ -> false
+
+let is_whitespace_newline = function
+  (* \x20 -> ascii space character *)
+  (* \x0a -> ascii newline character *)
+  (* \x0d -> carriage retunr character or \r *)
+  (* \x09 -> horizontal tab character *)
+  | '\x20' | '\x0a'  | '\x0d' | '\x09' -> true
+  | _ -> false
