@@ -92,14 +92,19 @@ let pipemaker acc nxt =
   Step (next,acc)
   
 let init = Step ((fun a -> a), Finish)
-let test_input = Core.List.map ~f:map_scheme [[10; 2; 60;]; [4; 90; 6]]
+let m_input = 
+[[49; 53; 8;];
+[0; 11; 42;];
+[42; 0; 7;];
+[57; 7; 4;]]
+let test_input = Core.List.map ~f:map_scheme m_input
 let () = List.iter print_map test_input
 let folder = Core.List.fold ~init:init ~f:pipemaker test_input
 let rec result (input:int state) (line:pipeline) = match line with
 | Step (f, rest) -> result (f input) rest
 | Finish -> input
 
-let res = result (Passing 92) folder
+let res = result (Passing 81) folder
 let () = match res with 
 | Passing a -> printf "\n%d" a
 | Processed a -> printf "\n%d" a
