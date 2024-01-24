@@ -2,6 +2,7 @@
 (* REMINDER also track how long it is takinag you work in this*)
 open Angstrom;;
 open Format;;
+
 let input = Advent.read_file_as_string "2023/inputs/input5"
 let test_input = "seeds: 79 14 55 13
 
@@ -38,39 +39,70 @@ humidity-to-location map:
 56 93 4
 "
 
-let () = print_endline "We are up"
+type 'a state =
+| Processed of 'a
+| Passing of 'a
 
 type pipeline = 
 | Finish
-| Step of (int -> int) * pipeline
-let pipe = Step ((fun a -> a + 3), Finish)
+| Step of (int state -> int state) * pipeline
 
 
 type mapping_scheme = {
-source_start : int; source_end : int; dest_start : int
+start : int; finish : int; dest : int
 }
 
+let print_map map' = printf "start: %d, finish: %d, dest: %d" map'.start map'.finish map'.dest
 
-let digit = take_while1 Lexer.is_digit
-let whitespace = take_while Lexer.is_whitespace
-let newline = take_till Lexer.newline_char *> char '\n'
+(* let digit = take_while1 Lexer.is_digit *)
+(* let whitespace = take_while Lexer.is_whitespace *)
+(* let newline = take_till Lexer.newline_char *> char '\n' *)
 let one_newline = char '\n' >>= fun _ -> peek_char_fail >>= fun a -> if Lexer.is_digit a then return () else fail "epic fail"
 
 let matrix_parse = 
-  let row_parse = sep_by whitespace (digit >>| int_of_string) in
+  let row_parse = sep_by Lexer.whitespace (Lexer.digit >>| int_of_string) in
   sep_by one_newline row_parse
 
 (* Unclean code leaves an empty list at the start *)
 let seed_parse = 
-  let dubble = newline *> newline *> any_char in  (* double_newline followed by any char *)
   let map_seperate = many_till any_char (string "map:\n") in
-  let* seeds = string "seeds:" *> whitespace *> (sep_by whitespace (digit >>| int_of_string)) in
+  let* seeds = string "seeds:" *> Lexer.whitespace *> (sep_by Lexer.whitespace (Lexer.digit >>| int_of_string)) in
   let* matrix = Angstrom.sep_by map_seperate matrix_parse in
   return (seeds,matrix)
 
 let seeds,matrix = match parse_string ~consume:Prefix seed_parse input  with
   | Ok x -> x
   | Error _ -> failwith "Big error"
-let wow = print_endline "hello"
-let wow1 = print_endline "hello"
-let wow2 = print_endline "hello"
+
+let map_scheme = function
+  | [] -> {start = 0; dest = 0; finish = 0}
+  | dest_start :: source_start :: range :: _ ->
+      {start = source_start; dest = dest_start; finish = source_start + range}
+  | _ -> failwith "Input is not valid"
+
+(* Return a functin int -> int *)
+let pipemaker acc nxt = 
+  let {start; dest; finish} = nxt in
+  let next = (fun a -> 
+    match a with 
+    | Processed a -> Processed a
+    | Passing a -> 
+       if a <= finish && a >= start then Processed ( a - start + dest ) else Passing a
+  ) in
+  Step (next,acc)
+  
+let init = Step ((fun a -> a), Finish)
+let test_input = Core.List.map ~f:map_scheme [[10; 2; 60;]; [4; 90; 6]]
+let () = List.iter print_map test_input
+let folder = Core.List.fold ~init:init ~f:pipemaker test_input
+let rec result (input:int state) (line:pipeline) = match line with
+| Step (f, rest) -> result (f input) rest
+| Finish -> input
+
+let res = result (Passing 92) folder
+let () = match res with 
+| Passing a -> printf "\n%d" a
+| Processed a -> printf "\n%d" a
+
+
+
