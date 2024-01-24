@@ -1,7 +1,6 @@
 open Angstrom;;
 open Format;;
-let test_input = "
-seeds: 79 14 55 13
+let test_input = "seeds: 79 14 55 13
 
 seed-to-soil map:
 50 98 2
@@ -66,23 +65,22 @@ let digit = take_while1 is_digit
 let whitespace = take_while is_whitespace_no_newline
 let newline = take_till newline_char *> char '\n'
 
+(* Parse out the seeds *)
+(* parse until the string map:\n *)
+(* parse the matrix seperated by the map: keyword*)
+let one_newline = char '\n' >>= fun _ -> peek_char_fail >>= fun a -> if is_digit a then return () else fail "epic fail"
+
 let matrix_parse = 
   let row_parse = sep_by whitespace (digit >>| int_of_string) in
-  sep_by (char '\n') row_parse
+  sep_by one_newline row_parse
 
+(* Unclean cod leaves an empty list at the start *)
 let seed_parse = 
-  let* _ = newline in
-  let* seeds = string "seeds:" *> whitespace *> (sep_by whitespace (digit >>| int_of_string)) <* newline in
-  let* _ = newline in
-  let* _ = newline in
-  let* matrix = matrix_parse in
-  (* let* _ = newline in *)
-  (* let* first_row = digit in  (\* sep_by whitespace digit in *\) *)
+  let dubble = newline *> newline *> any_char in  (* double_newline followed by any char *)
+  let map_seperate = many_till any_char (string "map:\n") in
+  let* seeds = string "seeds:" *> whitespace *> (sep_by whitespace (digit >>| int_of_string)) in
+  let* matrix = Angstrom.sep_by map_seperate matrix_parse in
   return (seeds,matrix)
-
-(* parse digits *)
-(* parse rows *)
-(* parse matrix *)
 
 let t_input = "
 seeds: 10 50 30 40
@@ -93,25 +91,12 @@ seed-to-soil map:
 3 30 38
 "
 
-let seeds,matrix = match parse_string ~consume:Prefix seed_parse t_input  with
+let seeds,matrix = match parse_string ~consume:Prefix seed_parse test_input  with
   | Ok x -> x
   | Error _ -> failwith "Big error"
 let () = List.iter (printf "%d ") seeds
 let () = printf "\n"
-let () = List.iter (fun a -> List.iter (printf "%d ") a; printf "\n") matrix
-
-
-let line_parse = 
-  let* source = Angstrom.string "seed" <* Angstrom.char '-' in
-  let* dest = Angstrom.string "soil" in
-  return (source,dest)
-
-let source, dest = match Angstrom.parse_string ~consume:Prefix line_parse test_input with
-| Ok x -> x
-| Error err -> Fmt.failwith "Big opps" err
-
-
-
-
+let dummy x = print_endline x
+(* int list list list *)
 
 
