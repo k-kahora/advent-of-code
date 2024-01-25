@@ -1,7 +1,10 @@
 (* REMINDER Next time working on this try to give it the Advent.input_lines to parse *)
 (* REMINDER also track how long it is takinag you work in this*)
 open Angstrom;;
+open Lexer;;
 open Format;;
+module Ang = Angstrom
+module Lex = Lexer;;
 
 let input = Advent.read_file_as_string "2023/inputs/input5"
 let test_input = "seeds: 79 14 55 13
@@ -57,17 +60,17 @@ let print_map map' = printf "start: %d, finish: %d, dest: %d" map'.start map'.fi
 (* let digit = take_while1 Lexer.is_digit *)
 (* let whitespace = take_while Lexer.is_whitespace *)
 (* let newline = take_till Lexer.newline_char *> char '\n' *)
-let one_newline = char '\n' >>= fun _ -> peek_char_fail >>= fun a -> if Lexer.is_digit a then return () else fail "epic fail"
+let one_newline = char '\n' >>= fun _ -> peek_char_fail >>= fun a -> if Lex.is_digit a then return () else fail "epic fail"
 
 let matrix_parse = 
-  let row_parse = sep_by Lexer.whitespace (Lexer.digit >>| int_of_string) in
+  let row_parse = sep_by Lex.whitespace (Lex.digit >>| int_of_string) in
   sep_by one_newline row_parse
 
 (* Unclean code leaves an empty list at the start *)
 let seed_parse = 
   let map_seperate = many_till any_char (string "map:\n") in
-  let* seeds = string "seeds:" *> Lexer.whitespace *> (sep_by Lexer.whitespace (Lexer.digit >>| int_of_string)) in
-  let* matrix = Angstrom.sep_by map_seperate matrix_parse in
+  let* seeds = string "seeds:" *> Lex.whitespace *> (sep_by Lex.whitespace (Lex.digit >>| int_of_string)) in
+  let* matrix = Ang.sep_by map_seperate matrix_parse in
   return (seeds,matrix)
 
 let seeds,matrix = match parse_string ~consume:Prefix seed_parse input  with
@@ -97,8 +100,11 @@ let m_input =
 [0; 11; 42;];
 [42; 0; 7;];
 [57; 7; 4;]]
+(* NOTE Clean up all this test code here *)
+(* The code for each matrix pipeline is done  *)
+(* Final thins should involve looping throug each matrix applying the number to the pipeline *)
+(* Pass that input to the next, so a big fold *)
 let test_input = Core.List.map ~f:map_scheme m_input
-let () = List.iter print_map test_input
 let folder = Core.List.fold ~init:init ~f:pipemaker test_input
 let rec result (input:int state) (line:pipeline) = match line with
 | Step (f, rest) -> result (f input) rest
