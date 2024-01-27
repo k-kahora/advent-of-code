@@ -1,5 +1,3 @@
-(* REMINDER Next time working on this try to give it the Advent.input_lines to parse *)
-(* REMINDER also track how long it is takinag you work in this*)
 open Angstrom;;
 open Lexer;;
 open Format;;
@@ -49,6 +47,7 @@ type 'a state =
 type pipeline = 
 | Finish
 | Step of (int state -> int state) * pipeline
+
 
 
 type mapping_scheme = {
@@ -104,14 +103,23 @@ let m_input =
 (* The code for each matrix pipeline is done  *)
 (* Final thins should involve looping throug each matrix applying the number to the pipeline *)
 (* Pass that input to the next, so a big fold *)
-let test_input = Core.List.map ~f:map_scheme m_input
-let folder = Core.List.fold ~init:init ~f:pipemaker test_input
-let rec result (input:int state) (line:pipeline) = match line with
-| Step (f, rest) -> result (f input) rest
+let matrix_to_pipe = Core.List.map ~f:map_scheme (* test_input needs to run on everty matrix *)
+let folder = Core.List.fold ~init:init ~f:pipemaker (* folder is a pipeline *)
+(* run a fold over the whole input returning a pipeline *)
+let rec process_pipe (input:int state) (line:pipeline) = match line with
+| Step (f, rest) -> process_pipe (f input) rest
 | Finish -> input
 
-let res = result (Passing 81) folder
-let () = match res with 
+let part1 matrix' =
+  let nxt_pipe = matrix_to_pipe matrix' |> folder in
+  nxt_pipe
+  
+
+
+let final_pipeline = Core.List.map ~f:part1 matrix
+let result = Core.List.fold ~f:(fun state pipe -> process_pipe state pipe) ~init:(Passing 79) final_pipeline
+
+let () = match result with 
 | Passing a -> printf "\n%d" a
 | Processed a -> printf "\n%d" a
 
