@@ -48,6 +48,14 @@ type pipeline =
 | Finish
 | Step of (int state -> int state) * pipeline
 
+let reverse_pipeline pipe = 
+  let rec rev acc pipe' = 
+    match pipe' with
+    | Step (f, rest) -> rev (Step (f,acc)) rest 
+    | Finish -> acc
+in
+rev Finish pipe
+
 
 
 type mapping_scheme = {
@@ -72,12 +80,12 @@ let seed_parse =
   let* matrix = Ang.sep_by map_seperate matrix_parse in
   return (seeds,matrix)
 
-let seeds,matrix = match parse_string ~consume:Prefix seed_parse input  with
+let seeds,matrix = match parse_string ~consume:Prefix seed_parse test_input  with
   | Ok x -> x
   | Error _ -> failwith "Big error"
 
 let map_scheme = function
-  | [] -> {start = 0; dest = 0; finish = 0}
+  | [] -> {start = (-1); dest = (-1); finish = (-1)}
   | dest_start :: source_start :: range :: _ ->
       {start = source_start; dest = dest_start; finish = source_start + range}
   | _ -> failwith "Input is not valid"
@@ -106,7 +114,7 @@ let m_input =
 let matrix_to_pipe = Core.List.map ~f:map_scheme (* test_input needs to run on everty matrix *)
 let folder = Core.List.fold ~init:init ~f:pipemaker (* folder is a pipeline *)
 (* run a fold over the whole input returning a pipeline *)
-let rec process_pipe (input:int state) (line:pipeline) = match line with
+let rec process_pipe (input:int state) (line:pipeline) = match reverse_pipeline line with
 | Step (f, rest) -> process_pipe (f input) rest
 | Finish -> input
 
@@ -114,10 +122,15 @@ let part1 matrix' =
   let nxt_pipe = matrix_to_pipe matrix' |> folder in
   nxt_pipe
   
+let reset_pipe (st: int state) : int state = 
+match st with
+| Passing a -> printf "%d\n" a;Passing a
+| Processed a -> printf "%d\n" a;Passing a
+
 
 
 let final_pipeline = Core.List.map ~f:part1 matrix
-let result = Core.List.fold ~f:(fun state pipe -> process_pipe state pipe) ~init:(Passing 79) final_pipeline
+let result = Core.List.fold ~f:(fun state pipe -> (process_pipe state pipe) |> reset_pipe) ~init:(Passing 14) final_pipeline
 
 let () = match result with 
 | Passing a -> printf "\n%d" a
