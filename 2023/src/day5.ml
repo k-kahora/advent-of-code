@@ -27,75 +27,77 @@ type mapping_scheme = {
     start : int; finish : int; dest : int
 }
 
-let print_map map' = printf "start: %d, finish: %d, dest: %d" map'.start map'.finish map'.dest
+(* Parse the input string *)
 
-let one_newline = char '\n' >>= fun _ -> peek_char_fail >>= fun a -> if Lex.is_digit a then return () else fail "epic fail"
+let parse_input input' =  
 
-let matrix_parse = 
-  let row_parse = sep_by Lex.whitespace (Lex.digit >>| int_of_string) in
-  sep_by one_newline row_parse
+  let one_newline = char '\n' >>= fun _ -> peek_char_fail >>= fun a -> if Lex.is_digit a then return () else fail "epic fail" in 
 
-(* Unclean code leaves an empty list at the start *)
-let seed_parse = 
-  let map_seperate = many_till any_char (string "map:\n") in
-  let* seeds = string "seeds:" *> Lex.whitespace *> (sep_by Lex.whitespace (Lex.digit >>| int_of_string)) in
-  let* matrix = Ang.sep_by map_seperate matrix_parse in
-  return (seeds,matrix)
+  let matrix_parse = 
+    let row_parse = sep_by Lex.whitespace (Lex.digit >>| int_of_string) in
+    sep_by one_newline row_parse
+  in
 
-let seeds,matrix = match parse_string ~consume:Prefix seed_parse input  with
-  | Ok x -> x
-  | Error _ -> failwith "Big error"
+  (* Unclean code leaves an empty list at the start *)
+  let seed_parse = 
+    let map_seperate = many_till any_char (string "map:\n") in
+    let* seeds = string "seeds:" *> Lex.whitespace *> (sep_by Lex.whitespace (Lex.digit >>| int_of_string)) in
+    let* matrix = Ang.sep_by map_seperate matrix_parse in
+    return (seeds,matrix)
+  in
+  match parse_string ~consume:Prefix seed_parse input'  with
+    | Ok x -> x
+    | Error _ -> failwith "Big error"
 
-let map_scheme = function
-  | [] -> {start = (-1); dest = (-1); finish = (-1)}
-  | dest_start :: source_start :: range :: _ ->
-      {start = source_start; dest = dest_start; finish = source_start + range}
-  | _ -> failwith "Input is not valid"
-
-(* Return a functin int -> int *)
-let pipemaker acc nxt = 
-  let {start; dest; finish} = nxt in
-  let next = (fun a -> 
-    match a with 
-    | Processed a -> Processed a
-    | Passing a -> 
-       if a <= finish && a >= start then Processed ( a - start + dest ) else Passing a
-  ) in
-  Step (next,acc)
   
-let init = Step ((fun a -> a), Finish)
-let matrix_to_pipe = Core.List.map ~f:map_scheme (* test_input needs to run on everty matrix *)
-let folder = Core.List.fold ~init:init ~f:pipemaker (* folder is a pipeline *)
 (* run a fold over the whole input returning a pipeline *)
-let rec process_pipe (input:int state) (line:pipeline) = match reverse_pipeline line with
-| Step (f, rest) -> process_pipe (f input) rest
-| Finish -> input
+
+(* run through the pipeline *)
 
 let part1 matrix' =
-  let nxt_pipe = matrix_to_pipe matrix' |> folder in
+  let init = Step ((fun a -> a), Finish) in
+  let map_scheme = function
+    | [] -> {start = (-1); dest = (-1); finish = (-1)}
+    | dest_start :: source_start :: range :: _ ->
+       {start = source_start; dest = dest_start; finish = source_start + range}
+    | _ -> failwith "Input is not valid"
+  in
+  let pipemaker acc nxt = 
+    let {start; dest; finish} = nxt in
+    let next = (fun a -> 
+        match a with 
+        | Processed a -> Processed a
+        | Passing a -> 
+           if a <= finish && a >= start then Processed ( a - start + dest ) else Passing a
+      ) in
+    Step (next,acc)
+  in
+  let nxt_pipe = Core.List.map ~f:map_scheme matrix' |> Core.List.fold ~init:init ~f:pipemaker in
   nxt_pipe
   
-let reset_pipe (st: int state) : int state = 
-match st with
-| Passing a -> Passing a
-| Processed a -> Passing a
 
-
-
-let final_pipeline = Core.List.map ~f:part1 matrix
-let result = Core.List.fold ~f:(fun state pipe -> (process_pipe state pipe) |> reset_pipe) final_pipeline
-
-
+(* Run the folds neccesary *)
+let seeds, matrix = parse_input input
 let final = Core.List.fold ~init:max_int ~f:(fun min seed -> 
+                let reset_pipe (st: int state) : int state = 
+                  match st with
+                  | Passing a -> Passing a
+                  | Processed a -> Passing a
+                in
+                let rec process_pipe (input:int state) (line:pipeline) = match reverse_pipeline line with
+                  | Step (f, rest) -> process_pipe (f input) rest
+                  | Finish -> input
+                in
+                let process_all_pipes = Core.List.fold ~f:(fun state pipe -> (process_pipe state pipe) |> reset_pipe) (Core.List.map ~f:part1 matrix) in
                 let ext = function 
                   | Passing a -> a
                   | Processed a -> a
                 in
-                let location = result ~init:(Passing seed) |> ext in
+                let location = process_all_pipes ~init:(Passing seed) |> ext in
                 if location < min then location else min
               ) seeds
 
-let () = printf "Result: %d, " final
+let () = printf "\n\n\nResult: %d, " final
 
 
 
