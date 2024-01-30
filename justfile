@@ -24,14 +24,18 @@ utop:
 	echo {{core}}
 	utop -I {{core}} src/test.cmo
 
-all year day:
+compile year day:
 	just advent {{year}}
 	just lexer {{year}}
 	ocamlfind ocamlc -g -package core,angstrom,fmt -I {{year}}/lib -c {{year}}/src/{{day}}.ml
 	@# Linking stage 
 	ocamlfind ocamlc -g -package core,stdio,angstrom,fmt -linkpkg -o {{year}}/build/{{day}} {{year}}/lib/advent.cmo {{year}}/lib/lexer.cmo  {{year}}/src/{{day}}.cmo
+
+all year day:
+	just compile {{year}} {{day}}
 	{{year}}/build/{{day}}
 
-
+run year day:
+	{{year}}/build/{{day}}
 
 
