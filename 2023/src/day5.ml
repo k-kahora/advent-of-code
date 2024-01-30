@@ -24,22 +24,6 @@ type mapping_scheme = {start: int; finish: int; dest: int}
 
 (* Parse the input string *)
 
-let seeds_part2 =
-  let seeds =
-    let two_digits =
-      Ang.lift2
-        (fun d1 d2 -> (int_of_string d1, int_of_string d2))
-        Lex.digit
-        (char ' ' *> Lex.digit)
-    in
-    string "seeds: " *> Ang.sep_by (char ' ') two_digits <* Lex.newline
-  in
-  match parse_string ~consume:Prefix seeds input with
-  | Ok x ->
-      x
-  | Error msg ->
-      failwith "opps"
-
 let parse_input input' =
   let one_newline =
     char '\n'
@@ -48,15 +32,20 @@ let parse_input input' =
     >>= fun a -> if Lex.is_digit a then return () else fail "epic fail"
   in
   let matrix_parse =
-    let row_parse = sep_by Lex.whitespace (Lex.digit >>| int_of_string) in
+    let record_parse =
+      let* dest = Lex.wmatch Lex.digit in
+      let* source = Lex.wmatch Lex.digit in
+      let* range = Lex.wmatch Lex.digit in
+      return {start= source; dest; finish= source + range}
+    in
+    let row_parse = sep_by Lex.whitespace Lex.digit in
     sep_by one_newline row_parse
   in
   (* Unclean code leaves an empty list at the start *)
   let seed_parse =
     let map_seperate = many_till any_char (string "map:\n") in
     let* seeds =
-      string "seeds:" *> Lex.whitespace
-      *> sep_by Lex.whitespace (Lex.digit >>| int_of_string)
+      string "seeds:" *> Lex.whitespace *> sep_by Lex.whitespace Lex.digit
     in
     let* matrix = Ang.sep_by map_seperate matrix_parse in
     return (seeds, matrix)
@@ -124,14 +113,3 @@ let final sd =
   Core.List.fold ~init:max_int ~f:(fun acc seed -> min acc @@ map_seed seed) sd
 
 let () = printf "\n\n\nResult: %d, " (final seeds)
-
-(* let test = *)
-(*   let open Advent in *)
-(*   Core.List.map ~f:(fun (start, finish) -> to_sequence start finish) seeds_part2 *)
-(*   |> Seq.fold_left (fun minimum_location seed -> *)
-(*          let location = map_seed seed in *)
-(*          min minimum_location location ) *)
-
-(* let () = printf "\n\n\nResult: %d, " (final test) *)
-
-let () = List.iter (fun (a, b) -> Format.printf "(%d, %d)" a b) seeds_part2
