@@ -39,7 +39,7 @@ let parse_input input' =
       return {start= source; dest; finish= source + range}
     in
     let row_parse = sep_by Lex.whitespace Lex.digit in
-    sep_by one_newline row_parse
+    sep_by one_newline record_parse
   in
   (* Unclean code leaves an empty list at the start *)
   let seed_parse =
@@ -90,26 +90,38 @@ let part1 matrix' =
 (* Run the folds neccesary *)
 let seeds, matrix = parse_input input
 
+(* if a <= finish && a >= start then Processed (a - start + dest) *)
+(* else Passing a *)
 let map_seed seed =
-  let reset_pipe (st : int state) : int state =
-    match st with Passing a -> Passing a | Processed a -> Passing a
-  in
-  let rec process_pipe (input : int state) (line : pipeline) =
-    match reverse_pipeline line with
-    | Step (f, rest) ->
-        process_pipe (f input) rest
-    | Finish ->
-        input
-  in
-  let process_all_pipes =
-    Core.List.fold
-      ~f:(fun state pipe -> process_pipe state pipe |> reset_pipe)
-      (Core.List.map ~f:part1 matrix)
-  in
-  let ext = function Passing a -> a | Processed a -> a in
-  process_all_pipes ~init:(Passing seed) |> ext
+  let open Core in
+  List.fold matrix ~init:max_int ~f:(fun acc map ->
+      let location =
+        List.find map ~f:(fun r -> seed <= r.finish && seed >= r.start)
+      in
+      match location with
+      | Some x ->
+          min acc (seed - x.start + x.dest)
+      | None ->
+          acc )
+
+(* let map_seed seed = *)
+(*   let reset_pipe (st : int state) : int state = *)
+(*     match st with Passing a -> Passing a | Processed a -> Passing a *)
+(*   in *)
+(*   let rec process_pipe (input : int state) (line : pipeline) = *)
+(*     match reverse_pipeline line with *)
+(*     | Step (f, rest) -> *)
+(*         process_pipe (f input) rest *)
+(*     | Finish -> *)
+(*         input *)
+(*   in *)
+(*   let process_all_pipes = *)
+(*     Core.List.fold *)
+(*       ~f:(fun state pipe -> process_pipe state pipe |> reset_pipe) *)
+(*       (Core.List.map ~f:part1 matrix) *)
+(*   in *)
+(*   let ext = function Passing a -> a | Processed a -> a in *)
+(*   process_all_pipes ~init:(Passing seed) |> ext *)
 
 let final sd =
   Core.List.fold ~init:max_int ~f:(fun acc seed -> min acc @@ map_seed seed) sd
-
-let () = printf "\n\n\nResult: %d, " (final seeds)
