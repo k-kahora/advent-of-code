@@ -101,30 +101,27 @@ let part1 matrix' =
 (* Run the folds neccesary *)
 let seeds, matrix = parse_input input
 
-(* let map_seed seed =  *)
+let map_seed seed =
+  let reset_pipe (st : int state) : int state =
+    match st with Passing a -> Passing a | Processed a -> Passing a
+  in
+  let rec process_pipe (input : int state) (line : pipeline) =
+    match reverse_pipeline line with
+    | Step (f, rest) ->
+        process_pipe (f input) rest
+    | Finish ->
+        input
+  in
+  let process_all_pipes =
+    Core.List.fold
+      ~f:(fun state pipe -> process_pipe state pipe |> reset_pipe)
+      (Core.List.map ~f:part1 matrix)
+  in
+  let ext = function Passing a -> a | Processed a -> a in
+  process_all_pipes ~init:(Passing seed) |> ext
 
 let final sd =
-  Core.List.fold ~init:max_int
-    ~f:(fun acc seed ->
-      let reset_pipe (st : int state) : int state =
-        match st with Passing a -> Passing a | Processed a -> Passing a
-      in
-      let rec process_pipe (input : int state) (line : pipeline) =
-        match reverse_pipeline line with
-        | Step (f, rest) ->
-            process_pipe (f input) rest
-        | Finish ->
-            input
-      in
-      let process_all_pipes =
-        Core.List.fold
-          ~f:(fun state pipe -> process_pipe state pipe |> reset_pipe)
-          (Core.List.map ~f:part1 matrix)
-      in
-      let ext = function Passing a -> a | Processed a -> a in
-      let location = process_all_pipes ~init:(Passing seed) |> ext in
-      min acc location )
-    sd
+  Core.List.fold ~init:max_int ~f:(fun acc seed -> min acc @@ map_seed seed) sd
 
 let () = printf "\n\n\nResult: %d, " (final seeds)
 
