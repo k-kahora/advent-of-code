@@ -6,6 +6,8 @@ module Lex = Lexer
 
 let input = Advent.read_file_as_string "2023/inputs/input5"
 
+let test_input = Advent.read_file_as_string "2023/inputs/test_input_day5"
+
 type 'a state = Processed of 'a | Passing of 'a
 
 type pipeline = Finish | Step of (int state -> int state) * pipeline
@@ -88,21 +90,17 @@ let part1 matrix' =
   nxt_pipe
 
 (* Run the folds neccesary *)
-let seeds, matrix = parse_input input
+let seeds, matrix = parse_input test_input
 
 (* if a <= finish && a >= start then Processed (a - start + dest) *)
 (* else Passing a *)
 let map_seed seed =
   let open Core in
-  List.fold matrix ~init:max_int ~f:(fun acc map ->
+  List.fold matrix ~init:seed ~f:(fun acc map ->
       let location =
-        List.find map ~f:(fun r -> seed <= r.finish && seed >= r.start)
+        List.find map ~f:(fun r -> acc <= r.finish && acc >= r.start)
       in
-      match location with
-      | Some x ->
-          min acc (seed - x.start + x.dest)
-      | None ->
-          acc )
+      match location with Some x -> acc - x.start + x.dest | None -> acc )
 
 (* let map_seed seed = *)
 (*   let reset_pipe (st : int state) : int state = *)
@@ -125,3 +123,5 @@ let map_seed seed =
 
 let final sd =
   Core.List.fold ~init:max_int ~f:(fun acc seed -> min acc @@ map_seed seed) sd
+
+let () = Format.printf "Seed: %d" @@ map_seed 55
